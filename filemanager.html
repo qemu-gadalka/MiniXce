@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Root = files</title>
+<title>Файловый менеджер</title>
 <style>
 body { font-family: sans-serif; margin: 20px; }
 h1 { margin-bottom: 10px; }
@@ -23,18 +23,18 @@ a:hover { text-decoration: underline; }
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = 'files'; // root = папка files
-const excludedRootFiles = ['filemanager.html']; // файлы, которые не показывать в root
+let currentPath = 'files'; // виртуальный root = папка files
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
 const breadcrumbsEl = document.getElementById('breadcrumbs');
 
+// Авто-загрузка содержимого папки
 function fetchFolder(path) {
     fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
-    .then(res => res.json())
-    .then(data => renderFolder(data))
-    .catch(err => console.error(err));
+        .then(res => res.json())
+        .then(data => renderFolder(data))
+        .catch(err => console.error(err));
 }
 
 function renderFolder(data) {
@@ -62,10 +62,8 @@ function renderFolder(data) {
     }
 
     data.forEach(item => {
-        // В root (files) показываем только папки и исключаем filemanager.html
-        if (currentPath === 'files') {
-            if (item.type === 'file' || excludedRootFiles.includes(item.name)) return;
-        }
+        // В виртуальном root показываем только папки
+        if (currentPath === 'files' && item.type === 'file') return;
 
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -86,9 +84,8 @@ function renderFolder(data) {
     });
 }
 
-// Стартуем в root = files
+// Стартуем сразу в виртуальном root
 fetchFolder(currentPath);
 </script>
-
 </body>
 </html>
