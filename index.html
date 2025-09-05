@@ -24,7 +24,7 @@ a:hover { text-decoration: underline; }
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = 'test'; // стартовая папка
+let currentPath = ''; // стартовая папка - root
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
@@ -39,7 +39,7 @@ function fetchFolder(path) {
 
 function renderFolder(data) {
     listEl.innerHTML = '';
-    pathEl.textContent = currentPath;
+    pathEl.textContent = currentPath || 'root';
 
     // Хлебные крошки
     breadcrumbsEl.innerHTML = '';
@@ -61,8 +61,10 @@ function renderFolder(data) {
         breadcrumbsEl.appendChild(link);
     }
 
-    // Список файлов и папок
     data.forEach(item => {
+        // Если находимся в руте и это файл — пропускаем
+        if (!currentPath && item.type === 'file') return;
+
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.textContent = item.name;
@@ -73,9 +75,8 @@ function renderFolder(data) {
             a.onclick = () => { currentPath = currentPath ? `${currentPath}/${item.name}` : item.name; fetchFolder(currentPath); return false; };
         } else if (item.type === 'file') {
             li.className = 'file';
-            // Формируем прямую raw-ссылку
-            a.href = `https://raw.githubusercontent.com/${owner}/${repo}/main/${currentPath}/${item.name}`;
-            a.target = '_blank'; // открывается в новой вкладке
+            a.href = `https://raw.githubusercontent.com/${owner}/${repo}/main/${currentPath ? currentPath + '/' : ''}${item.name}`;
+            a.target = '_blank';
         }
 
         li.appendChild(a);
@@ -83,6 +84,7 @@ function renderFolder(data) {
     });
 }
 
+// Запускаем
 fetchFolder(currentPath);
 </script>
 
