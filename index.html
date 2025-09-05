@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Autoindex like Nginx - test</title>
+<style>
+body { font-family: sans-serif; margin: 20px; }
+h1 { margin-bottom: 10px; }
+#breadcrumbs { margin-bottom: 10px; }
+ul { list-style: none; padding-left: 0; }
+li { margin: 10px 0; font-size: 18px; }
+li.folder::before { content: "📁 "; }
+li.file::before { content: "📄 "; }
+a { text-decoration: none; color: blue; }
+a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
 
+<h1>Папка: <span id="current-path">test</span></h1>
+<div id="breadcrumbs"></div>
+<ul id="file-list"></ul>
+
+<script>
+const owner = 'qemu-gadalka';
+const repo = 'main';
+let currentPath = 'test'; // стартовая папка
+
+const listEl = document.getElementById('file-list');
+const pathEl = document.getElementById('current-path');
+const breadcrumbsEl = document.getElementById('breadcrumbs');
+
+function fetchFolder(path) {
+    fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
+    .then(res => res.json())
+    .then(data => renderFolder(data))
+    .catch(err => console.error(err));
+}
+
+function renderFolder(data) {
+    listEl.innerHTML = '';
+    pathEl.textContent = currentPath;
+
+    // Хлебные крошки
+    breadcrumbsEl.innerHTML = '';
+    const rootLink = document.createElement('a');
+    rootLink.textContent = 'root';
+    rootLink.href = '#';
+    rootLink.onclick = () => { currentPath = ''; fetchFolder(currentPath); return false; };
+    breadcrumbsEl.appendChild(rootLink);
+
+    const parts = currentPath.split('/').filter(p => p);
+    let acc = [];
+    for (const p of parts) {
+        breadcrumbsEl.appendChild(document.createTextNode(' / '));
+        acc.push(p);
+        const link = document.createElement('a');
+        link.textContent = p;
+        link.href = '#';
+        link.onclick = () => { currentPath = acc.join('/'); fetchFolder(currentPath); return false; };
+        breadcrumbsEl.appendChild(link);
+    }
+
+    // Список файлов и папок
+    data.forEach(item => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.textContent = item.name;
+
+        if (item.type === 'dir') {
+            li.className = 'folder';
+            a.href = '#';
+            a.onclick = () => { currentPath = currentPath ? `${currentPath}/${item.name}` : item.name; fetchFolder(currentPath); return false; };
+        } else if (item.type === 'file') {
+            li.className = 'file';
+            a.href = item.download_url; // raw файл
+            a.target = '_blank';        // открывается в новой вкладке
+        }
+
+        li.appendChild(a);
+        listEl.appendChild(li);
+    });
+}
+
+fetchFolder(currentPath);
+</script>
+
+</body>
+</html>
