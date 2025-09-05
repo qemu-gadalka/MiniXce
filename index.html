@@ -2,66 +2,92 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Файловый просмотр test</title>
+<title>Autoindex like Nginx</title>
 <style>
-  body { font-family: sans-serif; margin: 20px; }
-  ul { list-style: none; padding-left: 0; }
-  li { margin: 5px 0; cursor: pointer; }
-  li.folder::before { content: "📁 "; }
-  li.file::before { content: "📄 "; }
-  pre { border: 1px solid #ccc; padding: 10px; white-space: pre-wrap; display: none; }
+body { font-family: sans-serif; margin: 20px; }
+h1 { margin-bottom: 10px; }
+#breadcrumbs { margin-bottom: 10px; }
+ul { list-style: none; padding-left: 0; }
+li { margin: 5px 0; }
+li.folder::before { content: "📁 "; }
+li.file::before { content: "📄 "; }
+a { text-decoration: none; color: blue; }
+pre { border: 1px solid #ccc; padding: 10px; white-space: pre-wrap; display: none; margin-top: 10px; }
 </style>
 </head>
 <body>
 
-<h1>Файловый просмотр test</h1>
-<div id="path">root</div>
+<h1>Папка: <span id="current-path">root</span></h1>
+<div id="breadcrumbs"></div>
 <ul id="file-list"></ul>
 <pre id="file-content"></pre>
 
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = 'test'; // стартовая папка
+let currentPath = ''; // стартовая папка, можно изменить
 
 const listEl = document.getElementById('file-list');
 const contentEl = document.getElementById('file-content');
-const pathEl = document.getElementById('path');
+const pathEl = document.getElementById('current-path');
+const breadcrumbsEl = document.getElementById('breadcrumbs');
 
 function fetchFolder(path) {
-  fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
+    fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
     .then(res => res.json())
     .then(data => renderFolder(data))
     .catch(err => console.error(err));
 }
 
 function renderFolder(data) {
-  listEl.innerHTML = '';
-  contentEl.style.display = 'none';
-  pathEl.textContent = currentPath;
+    listEl.innerHTML = '';
+    contentEl.style.display = 'none';
+    pathEl.textContent = currentPath || 'root';
 
-  data.forEach(item => {
-    const li = document.createElement('li');
-    li.textContent = item.name;
-    if (item.type === 'dir') {
-      li.className = 'folder';
-      li.onclick = () => {
-        currentPath = currentPath ? `${currentPath}/${item.name}` : item.name;
-        fetchFolder(currentPath);
-      };
-    } else if (item.type === 'file') {
-      li.className = 'file';
-      li.onclick = () => {
-        fetch(item.download_url)
-          .then(res => res.text())
-          .then(txt => {
-            contentEl.style.display = 'block';
-            contentEl.textContent = txt;
-          });
-      };
+    // Хлебные крошки
+    breadcrumbsEl.innerHTML = '';
+    const rootLink = document.createElement('a');
+    rootLink.textContent = 'root';
+    rootLink.href = '#';
+    rootLink.onclick = () => { currentPath = ''; fetchFolder(currentPath); return false; };
+    breadcrumbsEl.appendChild(rootLink);
+
+    const parts = currentPath.split('/').filter(p => p);
+    let acc = [];
+    for (const p of parts) {
+        breadcrumbsEl.appendChild(document.createTextNode(' / '));
+        acc.push(p);
+        const link = document.createElement('a');
+        link.textContent = p;
+        link.href = '#';
+        link.onclick = () => { currentPath = acc.join('/'); fetchFolder(currentPath); return false; };
+        breadcrumbsEl.appendChild(link);
     }
-    listEl.appendChild(li);
-  });
+
+    // Список файлов и папок
+    data.forEach(item => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.textContent = item.name;
+        a.href = '#';
+        if (item.type === 'dir') {
+            li.className = 'folder';
+            a.onclick = () => { currentPath = currentPath ? `${currentPath}/${item.name}` : item.name; fetchFolder(currentPath); return false; };
+        } else if (item.type === 'file') {
+            li.className = 'file';
+            a.onclick = () => {
+                fetch(item.download_url)
+                .then(res => res.text())
+                .then(txt => {
+                    contentEl.style.display = 'block';
+                    contentEl.textContent = txt;
+                });
+                return false;
+            };
+        }
+        li.appendChild(a);
+        listEl.appendChild(li);
+    });
 }
 
 fetchFolder(currentPath);
