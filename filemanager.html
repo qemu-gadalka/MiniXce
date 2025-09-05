@@ -23,13 +23,13 @@ a:hover { text-decoration: underline; }
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = 'files'; // виртуальный root = папка files
+let currentPath = 'files'; // Виртуальный root = папка files
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
 const breadcrumbsEl = document.getElementById('breadcrumbs');
 
-// Авто-загрузка содержимого папки
+// Функция для загрузки содержимого папки
 function fetchFolder(path) {
     fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
         .then(res => res.json())
@@ -37,6 +37,7 @@ function fetchFolder(path) {
         .catch(err => console.error(err));
 }
 
+// Функция рендеринга списка файлов/папок
 function renderFolder(data) {
     listEl.innerHTML = '';
     pathEl.textContent = currentPath === 'files' ? '/' : currentPath.replace(/^files\//, '/');
@@ -62,7 +63,7 @@ function renderFolder(data) {
     }
 
     data.forEach(item => {
-        // В виртуальном root показываем только папки
+        // В виртуальном root (files) показываем только папки
         if (currentPath === 'files' && item.type === 'file') return;
 
         const li = document.createElement('li');
@@ -84,7 +85,7 @@ function renderFolder(data) {
     });
 }
 
-// Стартуем сразу в виртуальном root
+// Запуск сразу в виртуальном root
 fetchFolder(currentPath);
 </script>
 </body>
