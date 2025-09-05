@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Autoindex like Nginx</title>
+<title>Autoindex like Nginx - test</title>
 <style>
 body { font-family: sans-serif; margin: 20px; }
 h1 { margin-bottom: 10px; }
@@ -17,7 +17,7 @@ pre { border: 1px solid #ccc; padding: 10px; white-space: pre-wrap; display: non
 </head>
 <body>
 
-<h1>Папка: <span id="current-path">root</span></h1>
+<h1>Папка: <span id="current-path">test</span></h1>
 <div id="breadcrumbs"></div>
 <ul id="file-list"></ul>
 <pre id="file-content"></pre>
@@ -25,7 +25,7 @@ pre { border: 1px solid #ccc; padding: 10px; white-space: pre-wrap; display: non
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = ''; // стартовая папка, можно изменить
+let currentPath = 'test'; // стартовая папка
 
 const listEl = document.getElementById('file-list');
 const contentEl = document.getElementById('file-content');
@@ -42,7 +42,7 @@ function fetchFolder(path) {
 function renderFolder(data) {
     listEl.innerHTML = '';
     contentEl.style.display = 'none';
-    pathEl.textContent = currentPath || 'root';
+    pathEl.textContent = currentPath;
 
     // Хлебные крошки
     breadcrumbsEl.innerHTML = '';
