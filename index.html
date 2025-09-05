@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Autoindex like Nginx - test</title>
+<title>Autoindex like Nginx - root</title>
 <style>
 body { font-family: sans-serif; margin: 20px; }
 h1 { margin-bottom: 10px; }
@@ -17,14 +17,14 @@ a:hover { text-decoration: underline; }
 </head>
 <body>
 
-<h1>Папка: <span id="current-path">test</span></h1>
+<h1>Папка: <span id="current-path">root</span></h1>
 <div id="breadcrumbs"></div>
 <ul id="file-list"></ul>
 
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = ''; // стартовая папка - root
+let currentPath = ''; // стартовая папка = root
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
@@ -62,7 +62,7 @@ function renderFolder(data) {
     }
 
     data.forEach(item => {
-        // Если находимся в руте и это файл — пропускаем
+        // В руте показываем только папки
         if (!currentPath && item.type === 'file') return;
 
         const li = document.createElement('li');
@@ -84,7 +84,7 @@ function renderFolder(data) {
     });
 }
 
-// Запускаем
+// Запуск сразу в root
 fetchFolder(currentPath);
 </script>
 
