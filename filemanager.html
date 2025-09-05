@@ -16,19 +16,16 @@
 </head>
 <body>
 <h1>GitHub File Manager</h1>
-<div>
-    <label>Repo (owner/repo): <input id="repoInput" placeholder="username/repo" /></label>
-    <label>Branch: <input id="branchInput" value="main" /></label>
-    <button onclick="loadRepo()">Load</button>
-</div>
 <div id="breadcrumb"></div>
 <ul id="fileTree"></ul>
 
 <script>
+const owner = 'qemu-gadalka';
+const repo = 'main';
+const branch = 'main';
 let currentPath = '';
 
-async function fetchFolder(owner, repo, path = '', branch = 'main') {
-    // Принудительно начинаем из files/
+async function fetchFolder(path = '') {
     const fullPath = path ? `files/${path}` : 'files';
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${fullPath}?ref=${branch}`;
     const res = await fetch(url);
@@ -36,16 +33,16 @@ async function fetchFolder(owner, repo, path = '', branch = 'main') {
     return await res.json();
 }
 
-function createFileLink(item, owner, repo, branch) {
+function createFileLink(item) {
     const li = document.createElement('li');
     if (item.type === 'dir') {
         li.textContent = '📁 ' + item.name;
         li.classList.add('folder');
         li.onclick = async (e) => {
             e.stopPropagation();
-            currentPath = item.path.replace(/^files\//, ''); // убираем files/ из пути
-            updateBreadcrumb(owner, repo, branch);
-            await showFolder(owner, repo, currentPath, branch);
+            currentPath = item.path.replace(/^files\//, '');
+            updateBreadcrumb();
+            await showFolder(currentPath);
         }
     } else if (item.type === 'file') {
         const a = document.createElement('a');
@@ -57,7 +54,7 @@ function createFileLink(item, owner, repo, branch) {
     return li;
 }
 
-function updateBreadcrumb(owner, repo, branch) {
+function updateBreadcrumb() {
     const breadcrumb = document.getElementById('breadcrumb');
     breadcrumb.innerHTML = '';
     const parts = currentPath.split('/').filter(p => p);
@@ -66,7 +63,7 @@ function updateBreadcrumb(owner, repo, branch) {
     rootLink.href = '#';
     rootLink.onclick = async () => {
         currentPath = '';
-        await showFolder(owner, repo, '', branch);
+        await showFolder('');
     }
     breadcrumb.appendChild(rootLink);
     parts.forEach((part, index) => {
@@ -76,32 +73,26 @@ function updateBreadcrumb(owner, repo, branch) {
         link.href = '#';
         link.onclick = async () => {
             currentPath = parts.slice(0, index + 1).join('/');
-            await showFolder(owner, repo, currentPath, branch);
+            await showFolder(currentPath);
         }
         breadcrumb.appendChild(link);
     });
 }
 
-async function showFolder(owner, repo, path, branch) {
+async function showFolder(path = '') {
     const fileTree = document.getElementById('fileTree');
     fileTree.innerHTML = '';
     try {
-        const contents = await fetchFolder(owner, repo, path, branch);
-        contents.forEach(item => fileTree.appendChild(createFileLink(item, owner, repo, branch)));
-        updateBreadcrumb(owner, repo, branch);
+        const contents = await fetchFolder(path);
+        contents.forEach(item => fileTree.appendChild(createFileLink(item)));
+        updateBreadcrumb();
     } catch (e) {
         alert(e.message);
     }
 }
 
-async function loadRepo() {
-    const repoInput = document.getElementById('repoInput').value.trim();
-    const branch = document.getElementById('branchInput').value.trim() || 'main';
-    const [owner, repo] = repoInput.split('/');
-    if (!owner || !repo) return alert('Invalid repo format');
-    currentPath = '';
-    await showFolder(owner, repo, '', branch);
-}
+// Автозагрузка при открытии страницы
+showFolder();
 </script>
 </body>
 </html>
