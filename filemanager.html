@@ -23,13 +23,12 @@ a:hover { text-decoration: underline; }
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = 'files'; // Виртуальный root = папка files
+let currentPath = 'files'; // реальный root = папка files
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
 const breadcrumbsEl = document.getElementById('breadcrumbs');
 
-// Функция для загрузки содержимого папки
 function fetchFolder(path) {
     fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
         .then(res => res.json())
@@ -37,9 +36,9 @@ function fetchFolder(path) {
         .catch(err => console.error(err));
 }
 
-// Функция рендеринга списка файлов/папок
 function renderFolder(data) {
     listEl.innerHTML = '';
+    // Визуально root = /
     pathEl.textContent = currentPath === 'files' ? '/' : currentPath.replace(/^files\//, '/');
 
     // Хлебные крошки
@@ -50,6 +49,7 @@ function renderFolder(data) {
     rootLink.onclick = () => { currentPath = 'files'; fetchFolder(currentPath); return false; };
     breadcrumbsEl.appendChild(rootLink);
 
+    // Формируем путь от files, без слова files
     const parts = currentPath.replace(/^files\//, '').split('/').filter(p => p);
     let acc = [];
     for (const p of parts) {
@@ -63,7 +63,7 @@ function renderFolder(data) {
     }
 
     data.forEach(item => {
-        // В виртуальном root (files) показываем только папки
+        // В виртуальном root показываем только папки
         if (currentPath === 'files' && item.type === 'file') return;
 
         const li = document.createElement('li');
