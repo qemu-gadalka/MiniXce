@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>root</title>
+<title>files</title>
 <style>
 body { font-family: sans-serif; margin: 20px; }
 h1 { margin-bottom: 10px; }
@@ -16,13 +16,13 @@ a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-<h1><span id="current-path">root</span></h1>
+<h1><span id="current-path">files</span></h1>
 <div id="breadcrumbs"></div>
 <ul id="file-list"></ul>
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = '';
+let currentPath = 'files'; // стартовая папка = files
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
@@ -37,13 +37,14 @@ function fetchFolder(path) {
 
 function renderFolder(data) {
     listEl.innerHTML = '';
-    pathEl.textContent = currentPath || 'root';
+    pathEl.textContent = currentPath || 'files';
 
+    // Хлебные крошки
     breadcrumbsEl.innerHTML = '';
     const rootLink = document.createElement('a');
-    rootLink.textContent = 'root';
+    rootLink.textContent = 'files';
     rootLink.href = '#';
-    rootLink.onclick = () => { currentPath = ''; fetchFolder(currentPath); return false; };
+    rootLink.onclick = () => { currentPath = 'files'; fetchFolder(currentPath); return false; };
     breadcrumbsEl.appendChild(rootLink);
 
     const parts = currentPath.split('/').filter(p => p);
@@ -59,7 +60,8 @@ function renderFolder(data) {
     }
 
     data.forEach(item => {
-        if (!currentPath && item.type === 'file') return;
+        // В папке files показываем только папки
+        if (currentPath === 'files' && item.type === 'file') return;
 
         const li = document.createElement('li');
         const a = document.createElement('a');
