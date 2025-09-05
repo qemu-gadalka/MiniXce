@@ -24,6 +24,7 @@ a:hover { text-decoration: underline; }
 const owner = 'qemu-gadalka';
 const repo = 'main';
 let currentPath = 'files'; // root = папка files
+const excludedRootFiles = ['filemanager.html']; // файлы, которые не показывать в root
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
@@ -38,7 +39,6 @@ function fetchFolder(path) {
 
 function renderFolder(data) {
     listEl.innerHTML = '';
-    // Отображаем "/" для root
     pathEl.textContent = currentPath === 'files' ? '/' : currentPath.replace(/^files\//, '/');
 
     // Хлебные крошки
@@ -62,8 +62,10 @@ function renderFolder(data) {
     }
 
     data.forEach(item => {
-        // В root (files) показываем только папки
-        if (currentPath === 'files' && item.type === 'file') return;
+        // В root (files) показываем только папки и исключаем filemanager.html
+        if (currentPath === 'files') {
+            if (item.type === 'file' || excludedRootFiles.includes(item.name)) return;
+        }
 
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -84,7 +86,7 @@ function renderFolder(data) {
     });
 }
 
-// Стартуем в "виртуальном root" = files
+// Стартуем в root = files
 fetchFolder(currentPath);
 </script>
 
