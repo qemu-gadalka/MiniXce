@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Файловый просмотр test</title>
+<style>
+  body { font-family: sans-serif; margin: 20px; }
+  ul { list-style: none; padding-left: 0; }
+  li { margin: 5px 0; cursor: pointer; }
+  li.folder::before { content: "📁 "; }
+  li.file::before { content: "📄 "; }
+  pre { border: 1px solid #ccc; padding: 10px; white-space: pre-wrap; display: none; }
+</style>
+</head>
+<body>
+
+<h1>Файловый просмотр test</h1>
+<div id="path">root</div>
+<ul id="file-list"></ul>
+<pre id="file-content"></pre>
+
+<script>
+const owner = 'qemu-gadalka';
+const repo = 'main';
+let currentPath = 'test'; // стартовая папка
+
+const listEl = document.getElementById('file-list');
+const contentEl = document.getElementById('file-content');
+const pathEl = document.getElementById('path');
+
+function fetchFolder(path) {
+  fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
+    .then(res => res.json())
+    .then(data => renderFolder(data))
+    .catch(err => console.error(err));
+}
+
+function renderFolder(data) {
+  listEl.innerHTML = '';
+  contentEl.style.display = 'none';
+  pathEl.textContent = currentPath;
+
+  data.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item.name;
+    if (item.type === 'dir') {
+      li.className = 'folder';
+      li.onclick = () => {
+        currentPath = currentPath ? `${currentPath}/${item.name}` : item.name;
+        fetchFolder(currentPath);
+      };
+    } else if (item.type === 'file') {
+      li.className = 'file';
+      li.onclick = () => {
+        fetch(item.download_url)
+          .then(res => res.text())
+          .then(txt => {
+            contentEl.style.display = 'block';
+            contentEl.textContent = txt;
+          });
+      };
+    }
+    listEl.appendChild(li);
+  });
+}
+
+fetchFolder(currentPath);
+</script>
+
+</body>
+</html>
