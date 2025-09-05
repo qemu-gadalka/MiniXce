@@ -73,8 +73,9 @@ function renderFolder(data) {
             a.onclick = () => { currentPath = currentPath ? `${currentPath}/${item.name}` : item.name; fetchFolder(currentPath); return false; };
         } else if (item.type === 'file') {
             li.className = 'file';
-            a.href = item.download_url; // raw файл
-            a.target = '_blank';        // открывается в новой вкладке
+            // Формируем прямую raw-ссылку
+            a.href = `https://raw.githubusercontent.com/${owner}/${repo}/main/${currentPath}/${item.name}`;
+            a.target = '_blank'; // открывается в новой вкладке
         }
 
         li.appendChild(a);
