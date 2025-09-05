@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Files root</title>
+<title>Root = files</title>
 <style>
 body { font-family: sans-serif; margin: 20px; }
 h1 { margin-bottom: 10px; }
@@ -23,7 +23,7 @@ a:hover { text-decoration: underline; }
 <script>
 const owner = 'qemu-gadalka';
 const repo = 'main';
-let currentPath = 'files'; // Реальный корень = папка files в репозитории
+let currentPath = 'files'; // root = папка files
 
 const listEl = document.getElementById('file-list');
 const pathEl = document.getElementById('current-path');
@@ -38,6 +38,7 @@ function fetchFolder(path) {
 
 function renderFolder(data) {
     listEl.innerHTML = '';
+    // Отображаем "/" для root
     pathEl.textContent = currentPath === 'files' ? '/' : currentPath.replace(/^files\//, '/');
 
     // Хлебные крошки
@@ -61,7 +62,7 @@ function renderFolder(data) {
     }
 
     data.forEach(item => {
-        // В корне (files) показываем только папки
+        // В root (files) показываем только папки
         if (currentPath === 'files' && item.type === 'file') return;
 
         const li = document.createElement('li');
@@ -83,7 +84,7 @@ function renderFolder(data) {
     });
 }
 
-// Стартуем в "виртуальном корне" = files
+// Стартуем в "виртуальном root" = files
 fetchFolder(currentPath);
 </script>
 
