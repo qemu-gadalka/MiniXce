@@ -1,1 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GitHub File Manager</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    ul { list-style-type: none; padding-left: 20px; }
+    li { margin: 5px 0; }
+    a { text-decoration: none; color: #0366d6; }
+    a:hover { text-decoration: underline; }
+    .folder { font-weight: bold; cursor: pointer; }
+    #breadcrumb a { margin-right: 5px; text-decoration: none; color: #0366d6; }
+    #breadcrumb a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<h1>GitHub File Manager</h1>
+<div id="breadcrumb"></div>
+<ul id="fileTree"></ul>
 
+<script>
+const owner = 'qemu-gadalka';
+const repo = 'main';
+const branch = 'main';
+let currentPath = '';
+
+async function fetchFolder(path = '') {
+    const fullPath = path ? `files/${path}` : 'files';
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${fullPath}?ref=${branch}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Error fetching repo');
+    return await res.json();
+}
+
+function createFileLink(item) {
+    const li = document.createElement('li');
+    if (item.type === 'dir') {
+        li.textContent = '📁 ' + item.name;
+        li.classList.add('folder');
+        li.onclick = async (e) => {
+            e.stopPropagation();
+            currentPath = item.path.replace(/^files\//, '');
+            updateBreadcrumb();
+            await showFolder(currentPath);
+        }
+    } else if (item.type === 'file') {
+        const a = document.createElement('a');
+        a.textContent = '📄 ' + item.name;
+        a.href = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${item.path}`;
+        a.target = '_blank';
+        li.appendChild(a);
+    }
+    return li;
+}
+
+function updateBreadcrumb() {
+    const breadcrumb = document.getElementById('breadcrumb');
+    breadcrumb.innerHTML = '';
+    const parts = currentPath.split('/').filter(p => p);
+    const rootLink = document.createElement('a');
+    rootLink.textContent = 'files';
+    rootLink.href = '#';
+    rootLink.onclick = async () => {
+        currentPath = '';
+        await showFolder('');
+    }
+    breadcrumb.appendChild(rootLink);
+    parts.forEach((part, index) => {
+        breadcrumb.appendChild(document.createTextNode(' / '));
+        const link = document.createElement('a');
+        link.textContent = part;
+        link.href = '#';
+        link.onclick = async () => {
+            currentPath = parts.slice(0, index + 1).join('/');
+            await showFolder(currentPath);
+        }
+        breadcrumb.appendChild(link);
+    });
+}
+
+async function showFolder(path = '') {
+    const fileTree = document.getElementById('fileTree');
+    fileTree.innerHTML = '';
+    try {
+        const contents = await fetchFolder(path);
+        contents.forEach(item => fileTree.appendChild(createFileLink(item)));
+        updateBreadcrumb();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+// Автозагрузка при открытии страницы
+showFolder();
+</script>
+</body>
+</html>
